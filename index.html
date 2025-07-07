@@ -8,47 +8,49 @@
       text-align: center;
       margin: 50px;
     }
-    video {
-      max-width: 90%;
-      height: auto;
-      margin-bottom: 20px;
-    }
-    a.button {
+
+    .button {
       display: inline-block;
       padding: 24px 48px;
       font-size: 28px;
-      background-color: #007BFF;
+      background-color: #28a745;
       color: white;
-      text-decoration: none;
       border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
   <h1>Here’s your video!</h1>
-  <video id="videoPreview" controls playsinline></video>
+  <video id="videoPreview" controls width="60%" style="margin-bottom: 20px;"></video>
   <br>
-  <a id="downloadBtn" class="button" href="#" download>Download Video</a>
+  <div class="button" onclick="downloadVideo()">Download Video</div>
 
-<script>
-  window.onload = async function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedUrl = urlParams.get('vid');
+  <script>
+    let rawUrl = "";
 
-    if (!encodedUrl) {
-      document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
-      return;
-    }
+    window.onload = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const url = urlParams.get('vid');
 
-    const decodedUrl = decodeURIComponent(encodedUrl);
-    console.log("🎥 Video URL:", decodedUrl);
+      if (!url) {
+        document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
+        return;
+      }
 
-    // Set up download button
-    const downloadBtn = document.getElementById('downloadBtn');
-    downloadBtn.addEventListener('click', async () => {
+      // DO NOT decode or re-encode
+      rawUrl = url;
+
+      console.log("✅ Using untouched signed URL:", rawUrl);
+
+      // Optional preview
+      document.getElementById('videoPreview').src = rawUrl;
+    };
+
+    async function downloadVideo() {
       try {
-        const response = await fetch(decodedUrl);
+        const response = await fetch(rawUrl);
         if (!response.ok) throw new Error("❌ Video fetch failed");
 
         const blob = await response.blob();
@@ -56,20 +58,17 @@
 
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = 'Your_Video.mp4'; // Or extract from URL if needed
+        a.download = 'Your_Video.mp4';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
         URL.revokeObjectURL(blobUrl);
       } catch (error) {
         console.error(error);
-        alert("❌ Could not download the video. Make sure the URL is valid and not expired.");
+        alert("❌ Could not download the video.");
       }
-    });
-  };
-</script>
-
-
+    }
+  </script>
 
 </body>
 </html>
