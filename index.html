@@ -32,43 +32,45 @@
   <a id="downloadBtn" class="button" href="#" download>Download Video</a>
 
 <script>
-  window.onload = function () {
+  window.onload = async function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const rawEncodedUrl = urlParams.get('vid');
-    const videoUrl = decodeURIComponent(rawEncodedUrl);
-
-    console.log("Decoded Video URL:", videoUrl);
+    const rawEncodedUrl = urlParams.get('vid'); // This should be your Firebase signed URL
+    const videoUrl = decodeURIComponent(rawEncodedUrl); // Fix double encoding
 
     if (videoUrl) {
+      console.log("Decoded Video URL:", videoUrl);
+
       const downloadBtn = document.getElementById('downloadBtn');
 
-      // Set href and download attribute for fallback (for Android/Desktop)
-      downloadBtn.href = videoUrl;
-      downloadBtn.setAttribute('download', 'Your_Video.mp4');
+      // Optional: auto-download without button
+      // await triggerDownload(videoUrl);
 
-      // Force download on click (for iOS and Safari)
-      downloadBtn.addEventListener('click', async (e) => {
-        e.preventDefault(); // prevent default anchor behavior
-        try {
-          const response = await fetch(videoUrl);
-          const blob = await response.blob();
-
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = 'Your_Video.mp4';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        } catch (err) {
-          alert('❌ Failed to download video');
-          console.error(err);
-        }
+      // If using button click to trigger download
+      downloadBtn.addEventListener('click', async () => {
+        await triggerDownload(videoUrl);
       });
 
     } else {
       document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
+    }
+
+    async function triggerDownload(url) {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'Your_Video.mp4'; // or extract from URL if needed
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+      } catch (err) {
+        alert('❌ Failed to download video');
+        console.error(err);
+      }
     }
   };
 </script>
