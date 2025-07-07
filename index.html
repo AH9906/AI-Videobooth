@@ -34,15 +34,21 @@
 <script>
   window.onload = function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('vid'); // keep using ?img= in your QR
+    const rawEncodedUrl = urlParams.get('vid');
+    const videoUrl = decodeURIComponent(rawEncodedUrl);
+
+    console.log("Decoded Video URL:", videoUrl);
 
     if (videoUrl) {
-      // Set a thumbnail or poster if needed
-      document.getElementById('photo').src = 'https://via.placeholder.com/300x150?text=Preview+Unavailable'; // or a frame from your video
-
-      // Handle download
       const downloadBtn = document.getElementById('downloadBtn');
-      downloadBtn.addEventListener('click', async () => {
+
+      // Set href and download attribute for fallback (for Android/Desktop)
+      downloadBtn.href = videoUrl;
+      downloadBtn.setAttribute('download', 'Your_Video.mp4');
+
+      // Force download on click (for iOS and Safari)
+      downloadBtn.addEventListener('click', async (e) => {
+        e.preventDefault(); // prevent default anchor behavior
         try {
           const response = await fetch(videoUrl);
           const blob = await response.blob();
@@ -53,18 +59,21 @@
           a.download = 'Your_Video.mp4';
           document.body.appendChild(a);
           a.click();
-          a.remove();
+          document.body.removeChild(a);
           URL.revokeObjectURL(blobUrl);
         } catch (err) {
           alert('❌ Failed to download video');
           console.error(err);
         }
       });
+
     } else {
       document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
     }
   };
 </script>
+
+
 
 </body>
 </html>
