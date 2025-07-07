@@ -31,25 +31,40 @@
   <br>
   <a id="downloadBtn" class="button" href="#" download>Download Video</a>
 
-  <script>
-    window.onload = function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoUrl = urlParams.get('vid');
+<script>
+  window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('img'); // keep using ?img= in your QR
 
-      if (videoUrl) {
-        const video = document.getElementById('videoPreview');
-        video.src = videoUrl;
+    if (videoUrl) {
+      // Set a thumbnail or poster if needed
+      document.getElementById('photo').src = 'https://via.placeholder.com/300x150?text=Preview+Unavailable'; // or a frame from your video
 
-        const fileName = videoUrl.split('/').pop().split('?')[0] || 'video.mp4';
+      // Handle download
+      const downloadBtn = document.getElementById('downloadBtn');
+      downloadBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetch(videoUrl);
+          const blob = await response.blob();
 
-        const downloadBtn = document.getElementById('downloadBtn');
-        downloadBtn.href = videoUrl;
-        downloadBtn.setAttribute('download', fileName);
-      } else {
-        document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
-      }
-    };
-  </script>
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = 'Your_Video.mp4';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+          alert('❌ Failed to download video');
+          console.error(err);
+        }
+      });
+    } else {
+      document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
+    }
+  };
+</script>
 
 </body>
 </html>
