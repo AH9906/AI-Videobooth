@@ -34,43 +34,36 @@
 <script>
   window.onload = async function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const rawParam = urlParams.get('vid');
+    const encodedUrl = urlParams.get('vid');
 
-    if (!rawParam) {
+    if (!encodedUrl) {
       document.body.innerHTML = "<h2 style='color: red;'>❌ No video URL provided.</h2>";
       return;
     }
 
-    // Decode the Firebase signed URL
-    const videoUrl = decodeURIComponent(rawParam);
-    console.log("🎥 Decoded Video URL:", videoUrl);
+    const decodedUrl = decodeURIComponent(encodedUrl);
+    console.log("🎥 Video URL:", decodedUrl);
 
-    // Optional: Display preview (if desired)
-    const video = document.createElement('video');
-    video.src = videoUrl;
-    video.controls = true;
-    video.style.maxWidth = "80%";
-    video.style.marginBottom = "20px";
-    document.body.insertBefore(video, document.getElementById('downloadBtn'));
-
-    // Setup download button
+    // Set up download button
     const downloadBtn = document.getElementById('downloadBtn');
     downloadBtn.addEventListener('click', async () => {
       try {
-        const response = await fetch(videoUrl);
+        const response = await fetch(decodedUrl);
+        if (!response.ok) throw new Error("❌ Video fetch failed");
+
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = 'Your_Video.mp4';
+        a.download = 'Your_Video.mp4'; // Or extract from URL if needed
         document.body.appendChild(a);
         a.click();
-        a.remove();
+        document.body.removeChild(a);
         URL.revokeObjectURL(blobUrl);
-      } catch (err) {
-        alert('❌ Failed to download video');
-        console.error(err);
+      } catch (error) {
+        console.error(error);
+        alert("❌ Could not download the video. Make sure the URL is valid and not expired.");
       }
     });
   };
